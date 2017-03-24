@@ -11,48 +11,44 @@ App.use(Helmet());
 App.disable('x-powered-by');
 
 let lastRefererBasePath = '';
-let proxy = Proxy({
-    target:       'http://127.0.0.1:8002/read-file/',
-    changeOrigin: true,
-    pathRewrite:  function (path, req) {
-        // console.log('path', path);
-        if (!req.headers['referer']) return path;
-        let uri = Url.parse(req.headers['referer']);
-        // console.log('');
 
-        // detect root path (thuong it hon 4 /)
-        // console.log('path.split.length', path.split('/').length);
-        if (path.split('/').length > 4) return path;
+function createProxyHandler(target) {
+    return Proxy({
+        target:       target,
+        changeOrigin: true,
+        pathRewrite:  function (path, req) {
+            // console.log('path', path);
+            if (!req.headers['referer']) return path;
+            let uri = Url.parse(req.headers['referer']);
+            // console.log('');
 
-        let parts = uri.pathname.split('/');
-        parts.pop(); // remove filename
+            // detect root path (thuong it hon 4 /)
+            // console.log('path.split.length', path.split('/').length);
+            if (path.split('/').length > 4) return path;
 
-        // console.log('parts.length', parts.length);
-        if (parts.length >= 4) {
-            lastRefererBasePath = parts.join('/');
+            let parts = uri.pathname.split('/');
+            parts.pop(); // remove filename
+
+            // console.log('parts.length', parts.length);
+            if (parts.length >= 4) {
+                lastRefererBasePath = parts.join('/');
+            }
+
+            let newPath = lastRefererBasePath + path;
+            // console.log(req.headers['referer']);
+            // console.log('path', path, 'newPath', newPath);
+            return newPath;
         }
+    });
+}
 
-        let newPath = lastRefererBasePath + path;
-        // console.log(req.headers['referer']);
-        // console.log('path', path, 'newPath', newPath);
-        return newPath;
-    },
-    // pathRewrite:  {
-    //     '^/proxy': '',
-    //     '^/css':   '/qq/demo-deploy-github/build/css',
-    //     '^/js':    '/qq/demo-deploy-github/build/js',
-    //     '^/img':   '/qq/demo-deploy-github/build/img',
-    //     '^/fonts': '/qq/demo-deploy-github/build/fonts',
-    // },
-    router:       {
-        // 'localhost:8888' : '127.0.0.1:8002/read-file/'
-    }
-});
+let proxyGet = createProxyHandler('http://127.0.0.1:8002/read-file/');
+let proxyPost = createProxyHandler('http://127.0.0.1:8002/write-file/');
 
 App.use('/ide', Express.static('web'));
 
-App.all('*', proxy);
-
+App.get('*', proxyGet);
+App.post('*', proxyPost);
 
 const PORT = Argv.PORT || 8888;
 

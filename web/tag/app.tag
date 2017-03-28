@@ -1,27 +1,56 @@
 <app>
-    <div class="ui grid" style="margin: 0">
+    <div ref="main" class="ui grid" style="margin: 0; display: none">
         <div class="sixteen wide column" style="padding: 0; display: flex;">
-            <div data-is="sidebar"></div>
-            <div data-is="iframe-inline-editor"></div>
+            <div data-is="sidebar" site-builder-url="{opts.siteBuilderUrl}"></div>
+            <div data-is="iframe-inline-editor" site-builder-url="{opts.siteBuilderUrl}"></div>
         </div>
     </div>
+    <div data-is="dialog-choose-site" site-builder-url="{opts.siteBuilderUrl}"></div>
 
     <script>
         var me = this;
 
-        var sideBar, editor;
+        var sideBar, editor, sitePath;
 
-        me.on('mount', function () {
-            sideBar = me.tags['sidebar'];
-            editor = me.tags['iframe-inline-editor'];
+        me.on('selectFile', function (fileName, filePath) {
+            console.log('select file', fileName, filePath);
+            // remove 'repository' from filePath
+            var parts = filePath.split('.');
+            parts.pop(); // remove file extension '.md'
+            var slug = parts.join('.').split('/').pop();
 
-//            console.log('tags', me.tags);
-//            console.log('sideBar', sideBar);
-//            console.log('editor', editor);
-            axios.get('http://127.0.0.1:8002/read-dir/qq/demo-deploy-github/content').then(function (resp) {
+            var pageUrl = me.sitePath
+                + '/build/'
+                + slug;
+
+            if (pageUrl.endsWith('/index'))
+                pageUrl += '.html';
+
+            if (!pageUrl.endsWith('/index.html'))
+                pageUrl += '/index.html';
+
+            console.log('pageUrl', pageUrl);
+            editor.setUrl(pageUrl);
+        });
+
+        me.on('chooseSite', function (sitePath) {
+            console.log('chooseSite', sitePath);
+            me.sitePath = sitePath;
+            me.tags['dialog-choose-site'].hide();
+
+            $(me.refs['main']).show();
+
+            var fileListUrl = me.opts.siteBuilderUrl + '/read-dir/' + sitePath + '/content';
+            console.log('fileListPath', fileListUrl);
+
+            var indexUrl = sitePath + '/build/index.html';
+            if (!indexUrl.startsWith('/')) indexUrl = '/' + indexUrl;
+            console.log('indexUrl', indexUrl);
+            editor.setUrl(indexUrl);
+
+            axios.get(fileListUrl).then(function (resp) {
                 var files = resp.data.result;
                 sideBar.loadFiles(files);
-//                console.log('data', data);
             });
 
             Split([sideBar.root, editor.root], {
@@ -30,6 +59,33 @@
                 sizes:      [20, 80],
                 minSize:    [200, 300],
                 gutterSize: 6
+            });
+        });
+
+        me.on('startBuild', function () {
+            console.log('startBuild', 'http://dummy.com/' + me.sitePath);
+            axios.post(me.opts.siteBuilderUrl + '/build', {
+                repoUrl: 'http://dummy.com' + me.sitePath
+            }).then(function (resp) {
+                console.log('build success', resp);
+                editor.trigger('endBuild', true);
+            }).catch(function (error) {
+                console.log('error');
+                editor.trigger('endBuild', false);
+            });
+        });
+
+        me.on('mount', function () {
+            // wait for dialog-choose-site mount
+//            setTimeout(function () {
+//                me.tags['dialog-choose-site'].show();
+//            });
+
+            sideBar = me.tags['sidebar'];
+            editor = me.tags['iframe-inline-editor'];
+
+            setTimeout(function () {
+                me.trigger('chooseSite', '/qq/demo-deploy-github');
             });
         });
 

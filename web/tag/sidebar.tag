@@ -19,7 +19,7 @@
 
         me.selectFile = function(e) {
             var selectedFile = e.item;
-            console.log('selectFile', selectedFile.name, 'path', selectedFile.path);
+            me.parent.trigger('selectFile', selectedFile.name, selectedFile.path);
         };
 
         me.on('mount', function () {

@@ -1,8 +1,21 @@
-<iframe-inline-editor style="display: inline-block; padding:0">
+<iframe-inline-editor style="display: inline-block; padding: 0; flex: 1;">
     <div class="ui attached segment" style="height: 100vh; padding: 0;">
-        <div class="ui top attached label"><h4 class="ui header">Review</h4></div>
-        <iframe ref="iframeInlineEditor" src="/qq/demo-deploy-github/build/index.html" style="overflow-x: hidden; padding: 0; height: calc(100vh - 40px); width: 100%; overflow-y: auto; margin: 35px 0 0 !important;">
-        </iframe>
+        <div class="ui top attached label">
+            <h4 class="ui header">
+                Review
+            </h4>
+        </div>
+        <div class="ui top right attached label" style="padding: 3px">
+            <div class="ui mini primary button {disabled: isBuilding}" click="{buildSite}">BUILD</div>
+        </div>
+        <div class="ui segment" style="height: calc(100vh - 40px); padding: 0; margin-top: 35px; box-shadow: none; border: none;">
+            <div ref="loader" class="ui inverted dimmer">
+                <div class="ui text loader">Loading</div>
+            </div>
+            <iframe ref="iframeInlineEditor" src="about:blank" style="overflow-x: hidden; padding: 0; margin: 0; height: 100%; width: 100%; overflow-y: auto;">
+            </iframe>
+        </div>
+
     </div>
     <script>
         var me = this;
@@ -14,20 +27,53 @@
         var FORM_END_1 = /---$/;
         var FORM_END_2 = /---[\r\n]/;
 
+        me.isBuilding = false;
+
+        me.showLoading = function () {
+            $(me.refs.loader).addClass('active');
+        };
+
+        me.hideLoading = function () {
+            $(me.refs.loader).removeClass('active');
+        };
+
         String.prototype.regexIndexOf = function (regex, startpos) {
             let indexOf = this.substring(startpos || 0).search(regex);
             return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
         };
 
+        me.setUrl = function (url) {
+            iframe.src = url;
+        };
+
+        me.on('endBuild', function () {
+            me.isBuilding = false;
+            me.hideLoading(); // show loading mask
+
+//            var curSrc = iframe.src;
+//            iframe.src = 'about:blank';
+//            iframe.src = curSrc;
+
+            me.update();
+        });
+
+        me.buildSite = function () {
+            me.isBuilding = true; // disable btn
+            me.showLoading(); // show loading mask
+            me.update();
+
+            me.parent.trigger('startBuild');
+        };
+
         function splitContentFile(fileContent) {
             var start = fileContent.regexIndexOf(FORM_START);
-            if (start == -1) return null;
+            if (start === -1) return null;
             start += 7;
 
             var end = fileContent.regexIndexOf(FORM_END_1, start);
-            if (end == -1)
+            if (end === -1)
                 end = fileContent.regexIndexOf(FORM_END_2, start);
-            if (end == -1) return null;
+            if (end === -1) return null;
             return {
                 metaData:     JSON.parse(fileContent.substr(start, end - start).trim()),
                 markDownData: fileContent.substr(end + 3).trim()
@@ -80,14 +126,14 @@
                     key = parseInt(key);
                     parent = cur;
                     cur = cur[key];
-                    console.log('number', key, cur != undefined && index == parts.length - 1);
-                    return cur != undefined && index == parts.length - 1;
+                    console.log('number', key, cur !== undefined && index === parts.length - 1);
+                    return cur !== undefined && index === parts.length - 1;
                 } else if (typeof(key) === 'string') {
                     // text
                     parent = cur;
                     cur = cur[key];
-                    console.log('text', key, cur != undefined && index == parts.length - 1);
-                    return cur != undefined && index == parts.length - 1;
+//                    console.log('text', key, cur != undefined && index == parts.length - 1);
+                    return cur !== undefined && index === parts.length - 1;
                 } else {
                     return false; // not proccessable key, break
                 }
@@ -99,6 +145,7 @@
         }
 
         window.onIframeElementEdit = function (event, elm, value) {
+            console.log('onIframeElementEdit');
             // lay cac data co prefix ea tu element
             var $elm = $(elm);
             var data = $elm.data();
@@ -108,7 +155,7 @@
             }
 
             // tim slug cua trang
-            if (data.eaSlug.indexOf('/build/') != -1) {
+            if (data.eaSlug.indexOf('/build/') !== -1) {
                 var parts = data.eaSlug.split('/');
                 while (parts.length > 0) {
                     var node = parts.shift();
@@ -122,6 +169,7 @@
         };
 
         window.onIframeElementBlur = function (data, editable) {
+            console.log('onIframeElementBlur');
             // read content file
             //      find content file name
             var fullPath = me.change.eaFullPath;
@@ -135,7 +183,7 @@
             $.get(contentPath, function (contentText) {
 //                console.log('contentPath data', content);
                 var content = splitContentFile(contentText);
-//                console.log('change', me.change);
+                console.log('change', me.change);
 //                console.log('content', content);
 //                console.log('me.change.eaObjectPath', me.change.eaObjectPath);
 //                console.log('content.metaData', content.metaData);
@@ -146,7 +194,7 @@
 
                 // create new content and write back
                 var newContent = '---json\r\n' + JSON.stringify(content.metaData, null, 4) + '\r\n---\r\n' + content.markDownData;
-                console.log('newContent', newContent);
+//                console.log('newContent', newContent);
 
                 // write file
                 $.ajax({

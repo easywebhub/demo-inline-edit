@@ -21,6 +21,7 @@
 <!-- RIOT TAGS -->
 <script src="tag/sidebar.tag" type="riot/tag"></script>
 <script src="tag/iframe-inline-editor.tag" type="riot/tag"></script>
+<script src="tag/dialog-choose-site.tag" type="riot/tag"></script>
 <script src="tag/app.tag" type="riot/tag"></script>
 
 <!-- JS -->
@@ -33,7 +34,11 @@
 <script src="js/split.min.js"></script>
 
 <!-- STARTUP -->
-<script>riot.mount('*');</script>
+<script>
+    riot.mount('*', {
+        siteBuilderUrl: 'http://127.0.0.1:8002'
+    });
+</script>
 
 </body>
 </html>

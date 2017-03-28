@@ -30,14 +30,28 @@ function createProxyHandler(target) {
             parts.pop(); // remove filename
 
             // console.log('parts.length', parts.length);
-            if (parts.length >= 4) {
+            if (parts.length === 4 && parts[3] === 'build') {
                 lastRefererBasePath = parts.join('/');
             }
 
             let newPath = lastRefererBasePath + path;
             // console.log(req.headers['referer']);
-            // console.log('path', path, 'newPath', newPath);
-            return newPath;
+            console.log('path', path, 'newPath', newPath);
+            if (path.startsWith('/css/')
+                || path.startsWith('/js/')
+                || path.startsWith('/fonts/')
+                || path.startsWith('/assets/')
+                || path.startsWith('/img/')
+            ) {
+                // trim after /build/
+                // var start = lastRefererBasePath.
+                // path =
+                // console.log('newPath', newPath);
+                return newPath;
+            } else {
+                // console.log('newPath', newPath);
+                return newPath;
+            }
         }
     });
 }

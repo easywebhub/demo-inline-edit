@@ -67,7 +67,7 @@ App.post('*', proxyPost);
 
 const PORT = Argv.PORT || 8888;
 
-let listener = App.listen(PORT, function () {
+let listener = App.listen(PORT, '0.0.0.0', function () {
     let address = listener.address();
     console.log(`app listening at ${address.address}:${address.port}`);
 });

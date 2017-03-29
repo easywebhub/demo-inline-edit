@@ -40,6 +40,7 @@ function createProxyHandler(target) {
             if (path.startsWith('/css/')
                 || path.startsWith('/js/')
                 || path.startsWith('/fonts/')
+                || path.startsWith('/vendors/')
                 || path.startsWith('/assets/')
                 || path.startsWith('/img/')
             ) {

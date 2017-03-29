@@ -13,11 +13,17 @@
         me.files = [];
 
         me.loadFiles = function(files) {
-            me.files = files;
+            me.files = _.filter(files, function(file){
+                if (file.name.endsWith('.json'))
+                    return false;
+                return true;
+            });
             me.update();
         };
 
         me.selectFile = function(e) {
+            $(me.root).find('.link>.item').removeClass('active');
+            $(e.target).addClass('active');
             var selectedFile = e.item;
             me.parent.trigger('selectFile', selectedFile.name, selectedFile.path);
         };

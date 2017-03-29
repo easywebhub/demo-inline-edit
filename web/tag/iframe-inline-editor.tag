@@ -175,7 +175,8 @@
         };
 
         window.onIframeElementBlur = function (data, editable) {
-            console.log('onIframeElementBlur');
+            if (!me.change) return;
+            console.log('onIframeElementBlur', me.change);
             // read content file
             //      find content file name
             var fullPath = me.change.eaFullPath;

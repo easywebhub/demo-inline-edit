@@ -36,7 +36,7 @@ function createProxyHandler(target) {
 
             let newPath = lastRefererBasePath + path;
             // console.log(req.headers['referer']);
-            console.log('path', path, 'newPath', newPath);
+            // console.log('path', path, 'newPath', newPath);
             if (path.startsWith('/css/')
                 || path.startsWith('/js/')
                 || path.startsWith('/fonts/')

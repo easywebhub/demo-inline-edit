@@ -77,16 +77,16 @@
 
         me.on('mount', function () {
             // wait for dialog-choose-site mount
-//            setTimeout(function () {
-//                me.tags['dialog-choose-site'].show();
-//            });
+            setTimeout(function () {
+                me.tags['dialog-choose-site'].show();
+            });
 
             sideBar = me.tags['sidebar'];
             editor = me.tags['iframe-inline-editor'];
 
-            setTimeout(function () {
-                me.trigger('chooseSite', '/qq/demo-deploy-github');
-            });
+//            setTimeout(function () {
+//                me.trigger('chooseSite', '/qq/demo-deploy-github');
+//            });
         });
 
         me.on('unmount', function () {

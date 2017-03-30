@@ -65,7 +65,8 @@
         me.on('startBuild', function () {
             console.log('startBuild', 'http://dummy.com/' + me.sitePath);
             axios.post(me.opts.siteBuilderUrl + '/build', {
-                repoUrl: 'http://dummy.com' + me.sitePath
+                repoUrl: 'http://dummy.com' + me.sitePath,
+                task:    'metalsmith'
             }).then(function (resp) {
                 console.log('build success', resp);
                 editor.trigger('endBuild', true);

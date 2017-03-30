@@ -170,6 +170,10 @@
                 data.eaSlug = parts.join('/');
             }
 
+            // trim <p></p> trong value
+            if (value.startsWith('<p>'))
+                value = value.slice(3, value.length - 4);
+            console.log('valuevaluevalue', value);
             data.eaValue = value;
             me.change = data;
         };
@@ -220,28 +224,41 @@
 
             window.iframeInlineEditor = me.refs['iframeInlineEditor'];
             me.refs['iframeInlineEditor'].onload = function () {
-                console.log('preview loaded');
-                console.log('start inject');
+                console.log('preview loaded, start inject');
 
-                var jsList = ['js/jquery.min.js', 'js/medium-editor.min.js'];
-                jsList.forEach(function (scriptUrl) {
-                    $.get(scriptUrl, function (data) {
-                        injectJSCode(data);
-                    });
+                $.get('js/jquery.min.js', function (data) {
+                    injectJSCode('if(!window.jQuery) {\r\n' + data + '\r\n}\r\n');
+                });
+
+                $.get('js/medium-editor.min.js', function (data) {
+                    injectJSCode(data);
                 });
 
                 $.get('css/medium-editor.min.css', function (data) {
                     injectCSSStyle(data);
                 });
 
+                console.log('inject prevent click link and init inline editor');
                 runScript(`
                     (function defer() { if (!window.MediumEditor) {
                         setTimeout(function () {defer()}, 50); return;}
+
+                        $('a').off('click').click(function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        });
+                        console.log("$('a')", $('a'));
+
                         $('*[data-ea-object-path]').each(function(index, elm) {
                             var $elm = $(elm);
                             $elm.attr('data-ea-slug', document.location.pathname);
                             $elm.attr('data-ea-full-path', document.location.pathname);
-                            var editor = new MediumEditor(elm);
+                            var editor = new MediumEditor(elm, {
+                                disableExtraSpaces: true,
+                                disableReturn : true,
+                                disableDoubleReturn  : true,
+                            });
 
                             editor.subscribe('editableInput', function(data, editable) {
                                 window.parent.onIframeElementEdit(data, editable, elm.innerHTML);

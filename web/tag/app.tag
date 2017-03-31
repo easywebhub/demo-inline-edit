@@ -77,13 +77,26 @@
         });
 
         me.on('mount', function () {
-            // wait for dialog-choose-site mount
-            setTimeout(function () {
-                me.tags['dialog-choose-site'].show();
-            });
-
             sideBar = me.tags['sidebar'];
             editor = me.tags['iframe-inline-editor'];
+
+
+            // handle if url have username and repository info
+            var parts = document.location.pathname.split('/');
+            if (parts.length >= 4) {
+                var username = parts[2];
+                var repository = parts[3];
+                sitePath = username + '/' + repository;
+                if (!sitePath.startsWith('/')) sitePath = '/' + sitePath;
+                setTimeout(function () {
+                    me.trigger('chooseSite', sitePath);
+                });
+            } else {
+                // wait for dialog-choose-site mount
+                setTimeout(function () {
+                    me.tags['dialog-choose-site'].show();
+                });
+            }
 
 //            setTimeout(function () {
 //                me.trigger('chooseSite', '/qq/demo-deploy-github');

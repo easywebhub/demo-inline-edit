@@ -61,6 +61,7 @@ let proxyGet = createProxyHandler('http://127.0.0.1:8002/read-file/');
 let proxyPost = createProxyHandler('http://127.0.0.1:8002/write-file/');
 
 App.use('/ide', Express.static('web'));
+App.use('/ide/:username/:repository', Express.static('web'));
 
 App.get('*', proxyGet);
 App.post('*', proxyPost);
